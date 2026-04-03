@@ -2,7 +2,7 @@
 name = "domesticator"
 version = "1.0.0"
 description = "FastAPI сервис для умного веб-скрейпинга с конфигурируемыми селекторами и системой трансформации данных"
-requires-python = ">=3.12"
+requires-python = ">=3.12,<3.14"
 dependencies = [
     "fastapi>=0.104.0",
     "uvicorn[standard]>=0.24.0",

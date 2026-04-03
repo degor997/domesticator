@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package domesticator;
+
+enum EWildPriceInputType {
+    UNKNOWN = 0;
+    COTICO_PARSER = 1;
+}
+
+message TWildPriceInput {
+    string Url = 1;
+    int64 Price = 2;
+    int64 OldPrice = 3;
+    string Currency = 4;
+    EWildPriceInputType Type = 5;
+    int64 UpdateTimestamp = 6;
+}

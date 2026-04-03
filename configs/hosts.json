@@ -1,0 +1,97 @@
+{
+  "trendyol.com": {
+    "default": {
+      "field_extractors": {
+        "price": {
+          "selectors": [
+            ".productDetailWrapper .new-price",
+            ".productDetailWrapper .price .discounted"
+          ],
+          "required": true,
+          "transforms": ["clean_text", "text_to_price"]
+        },
+        "old_price": {
+          "selectors": [".productDetailWrapper .old-price"],
+          "required": false,
+          "transforms": ["clean_text", "text_to_price"]
+        },
+        "currency": {
+          "selectors": [
+            ".productDetailWrapper .new-price",
+            ".productDetailWrapper .price .discounted",
+            ".productDetailWrapper .old-price"
+          ],
+          "required": true,
+          "transforms": [
+            "clean_text",
+            "to_lower",
+            {"name": "text_contains", "search": "tl"},
+            {"name": "true_to_text", "new": "TRY"}
+          ]
+        }
+      }
+    }
+  },
+  "amazon.com.tr": {
+    "default": {
+      "field_extractors": {
+        "price": {
+          "selectors": [
+            ".priceToPay .a-price-whole",
+            ".a-price.a-text-price.a-size-medium.apexPriceToPay .a-offscreen",
+            ".a-price .a-offscreen"
+          ],
+          "required": true,
+          "transforms": ["clean_text", "text_to_price"]
+        },
+        "old_price": {
+          "selectors": [
+            ".a-price-base .a-offscreen",
+            ".a-text-strike .a-offscreen"
+          ],
+          "required": false,
+          "transforms": ["clean_text", "text_to_price"]
+        }
+      }
+    }
+  },
+  "n11.com": {
+    "default": {
+      "performance_mode": true,
+      "field_extractors": {
+        "price": {
+          "selectors": [".newPrice", ".price", ".unvan .price"],
+          "required": true,
+          "transforms": ["clean_text", "text_to_price"]
+        },
+        "old_price": {
+          "selectors": [".oldPrice", ".old-price"],
+          "required": false,
+          "transforms": ["clean_text", "text_to_price"]
+        }
+      }
+    }
+  },
+  "idefix.com": {
+    "default": {
+      "performance_mode": true,
+      "field_extractors": {
+        "price": {
+          "selectors": [
+            {"value": "meta[property='og:price:sale_price']", "attribute": "content"},
+            {"value": "meta[property='og:price:amount']", "attribute": "content"}
+          ],
+          "required": true,
+          "transforms": ["clean_text", "text_to_price"]
+        },
+        "currency": {
+          "selectors": [
+            {"value": "meta[property='og:price:currency']", "attribute": "content"}
+          ],
+          "required": true,
+          "transforms": ["clean_text"]
+        }
+      }
+    }
+  }
+}

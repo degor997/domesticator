@@ -1,0 +1,714 @@
+# Domesticator
+
+FastAPI сервис для умного веб-скрейпинга с конфигурируемыми селекторами и системой трансформации данных.
+
+## 🚀 Быстрый старт
+
+### Подготовь проект
+```bash
+# Создай файл переменных окружения
+cp .env.local.example .env.local  # При необходимости внеси правки
+
+# Пакетный менеджер
+brew install uv   # или apt-get install uv
+
+# Chromiun
+PLAYWRIGHT_NODEJS_PATH=$(which node) uvx --env-file .env.local playwright install chromium  # В CI или чистых средах может пригодиться --with-deps
+```
+
+### С использованием Makefile (рекомендуется)
+
+```bash
+# Установка и запуск
+make install           # Установка зависимостей
+make pg/up             # PostgreSQL для персистентности конфигов (опционально)
+make dev               # Локальный запуск с hot reload
+
+# Docker
+make build        # Сборка образа
+make run          # Запуск в контейнере
+make logs         # Просмотр логов
+
+# Разработка
+make test         # Запуск тестов
+make lint         # Проверка кода
+make help         # Все доступные команды
+```
+
+### Ручной запуск
+
+```bash
+# Локальная разработка
+uv sync
+APP_ENV=development uv run --env-file .env.local uvicorn http_api.run:server --reload
+
+# Docker
+docker build -t domesticator .
+docker run -p 8000:8000 domesticator
+```
+
+Сервис доступен по адресу: **http://localhost:8000**
+
+## 📚 Интерактивная документация
+
+После запуска сервиса доступны:
+- **Swagger UI:** http://localhost:8000/docs
+- **ReDoc:** http://localhost:8000/redoc
+- **OpenAPI спецификация:** http://localhost:8000/openapi.json
+
+## 📡 API Эндпоинты
+
+### Базовые эндпоинты
+| Метод | Путь | Описание |
+|-------|------|----------|
+| `GET` | `/`  | Главная страница |
+| `GET` | `/ping` | Ping-pong проверка |
+| `GET` | `/health` | Проверка состояния сервиса |
+
+### API v0 - Основная функциональность
+| Метод | Путь | Описание |
+|-------|------|----------|
+| `GET` | `/v0/status` | Статус API и версия приложения |
+| `POST`| `/v0/crawl` | Запуск скрейпинга сайтов с возможной отправкой цен в Logbroker |
+
+### Управление конфигурациями хостов
+| Метод | Путь | Описание |
+|-------|------|----------|
+| `GET` | `/v0/config/hosts` | Получить все конфигурации хостов |
+| `GET` | `/v0/config/hosts/{hostname}` | Получить конфигурацию для конкретного хоста |
+| `GET` | `/v0/config/hosts/{hostname}/strategies` | Получить список стратегий хоста |
+| `POST` | `/v0/config/hosts/{hostname}` | Добавить конфигурацию (query: strategy) |
+| `PUT` | `/v0/config/hosts/{hostname}` | Обновить конфигурацию (query: strategy) |
+| `DELETE` | `/v0/config/hosts/{hostname}` | Удалить конфигурацию (query: strategy, опционально) |
+
+### Управление прокси
+| Метод | Путь | Описание |
+|-------|------|----------|
+| `GET` | `/v0/proxies` | Получить список всех прокси |
+| `POST` | `/v0/proxies/add` | Добавить прокси в ротацию |
+| `DELETE` | `/v0/proxies/{proxy_url}` | Удалить прокси из ротации |
+
+## ⚙️ Конфигурация хостов
+
+Режим хранения **взаимоисключающий** (на старте выбирается один):
+
+- **Production** (`APP_ENV=production` / `prod`): обязателен **`PG_CONNECTION`** — конфиги только в Postgres. Пустая таблица один раз заполняется из `configs/hosts.json` (seed). Ошибка подключения к БД при старте **не** переключает на in-memory.
+- **Development** (`APP_ENV=development` / `dev`): либо задаёте **`PG_CONNECTION`** (тогда как в production), либо **не задаёте** — тогда используется in-memory загрузка из `configs/hosts.json` без Postgres (удобно без Docker).
+
+### Поля `status` и `frozen`
+
+- **`status`** (строка, по умолчанию `active`):
+  - `active` — краулинг выполняется.
+  - `draft` — черновик: конфиг хранится и отдаётся по API, но краулинг **не** запускается (`host_config_inactive`).
+  - `disabled` — выключено административно: краулинг **не** запускается (`host_config_inactive`).
+- **`frozen`** (bool, по умолчанию `false`): если `true`, конфиг нельзя перезаписать (`POST` при существующей записи), изменить (`PUT`) или удалить (`DELETE`) через API — ответ **423** с `host_config_frozen`. Снять заморозку можно только вне API (напрямую в БД), если понадобится.
+
+### Реальные конфигурации сайтов
+
+#### Trendyol.com - Турецкий маркетплейс
+```json
+{
+  "trendyol.com": {
+    "field_extractors": {
+      "price": {
+        "selectors": [
+          ".productDetailWrapper .new-price",
+          ".productDetailWrapper .price .discounted"
+        ],
+        "required": true,
+        "transforms": ["clean_text", "text_to_price"]
+      },
+      "old_price": {
+        "selectors": [".productDetailWrapper .old-price"],
+        "required": false,
+        "transforms": ["clean_text", "text_to_price"]
+      },
+      "currency": {
+        "selectors": [
+          ".productDetailWrapper .new-price",
+          ".productDetailWrapper .price .discounted",
+          ".productDetailWrapper .old-price"
+        ],
+        "required": true,
+        "transforms": [
+          "clean_text",
+          "to_lower",
+          {"name": "text_contains", "search": "tl"},
+          {"name": "true_to_text", "new": "TRY"}
+        ]
+      }
+    }
+  }
+}
+```
+
+#### Amazon.com.tr - Amazon Турция
+```json
+{
+  "amazon.com.tr": {
+    "field_extractors": {
+      "price": {
+        "selectors": [
+          ".priceToPay .a-price-whole",
+          ".a-price.a-text-price.a-size-medium.apexPriceToPay .a-offscreen",
+          ".a-price .a-offscreen"
+        ],
+        "required": true,
+        "transforms": ["clean_text", "text_to_price"]
+      },
+      "old_price": {
+        "selectors": [
+          ".a-price-base .a-offscreen",
+          ".a-text-strike .a-offscreen"
+        ],
+        "required": false,
+        "transforms": ["clean_text", "text_to_price"]
+      }
+    }
+  }
+}
+```
+
+#### N11.com - Турецкий e-commerce
+```json
+{
+  "n11.com": {
+    "performance_mode": true,
+    "field_extractors": {
+      "price": {
+        "selectors": [".newPrice", ".price", ".unvan .price"],
+        "required": true,
+        "transforms": ["clean_text", "text_to_price"]
+      },
+      "old_price": {
+        "selectors": [".oldPrice", ".old-price"],
+        "required": false,
+        "transforms": ["clean_text", "text_to_price"]
+      }
+    }
+  }
+}
+```
+
+#### Idefix.com - Мета-теги
+```json
+{
+  "idefix.com": {
+    "performance_mode": true,
+    "field_extractors": {
+      "price": {
+        "selectors": [
+          {"value": "meta[property='og:price:sale_price']", "attribute": "content"},
+          {"value": "meta[property='og:price:amount']", "attribute": "content"}
+        ],
+        "required": true,
+        "transforms": ["clean_text", "text_to_price"]
+      },
+      "currency": {
+        "selectors": [
+          {"value": "meta[property='og:price:currency']", "attribute": "content"}
+        ],
+        "required": true,
+        "transforms": ["clean_text"]
+      }
+    }
+  }
+}
+```
+
+### Типы селекторов
+
+1. **Простые селекторы** - список CSS селекторов:
+   ```json
+   "selectors": [".price", ".cost", "[data-price]"]
+   ```
+
+2. **Расширенные селекторы** - с извлечением атрибутов:
+   ```json
+   "selectors": [
+     {
+       "value": ".product-image img",
+       "attribute": "src"
+     },
+     {
+       "value": "meta[property='og:image']",
+       "attribute": "content"
+     }
+   ]
+   ```
+
+### Действия браузера
+
+- `wait` - Ожидание (timeout в мс)
+- `wait_for_selector` - Ожидание появления элемента
+- `click` - Клик по элементу
+- `scroll` - Скролл (up/down, pixels)
+- `input` - Ввод текста
+
+## 🔄 Система трансформации данных
+
+Мощная система преобразования извлеченных данных с поддержкой конвейеров функций.
+
+### Доступные функции трансформации
+
+#### Очистка и нормализация
+- `clean_text` - Очистка текста и нормализация Unicode
+- `strip_whitespace` - Удаление пробелов по краям
+- `to_lower/to_upper` - Изменение регистра
+- `to_text` - Преобразование в строку
+
+#### Преобразование типов
+- **`text_to_price`** - **Цены в копейках** (умножение на 100 для точности)
+  ```json
+  "₽ 1 234,56" → 123456  // 123456 копеек = 1234.56 рублей
+  "$123.45" → 12345     // 12345 центов = 123.45 долларов
+  ```
+- `extract_numbers` - Извлечение только цифр
+
+#### Работа со строками
+- `regex_extract(pattern, group)` - Извлечение по регулярному выражению
+- `regex_replace(pattern, replacement)` - Замена по регулярному выражению
+- `replace_text(old, new)` - Замена текста
+- `substring(start, end)` - Извлечение подстроки
+- `split_by(separator, maxsplit)` - Разделение строки
+
+#### Работа с массивами/списками
+- `first` - Первый элемент списка
+- `last` - Последний элемент списка
+- `pick(index)` - Элемент по индексу
+- `join_with(separator)` - Объединение массива в строку
+
+#### Логические операции
+- `text_contains(search)` - Проверка наличия текста
+- `toggle_boolean` - Инвертирование булева значения
+- `true_to_text(new)` - Преобразование true в текст
+
+### Примеры использования
+
+```json
+{
+  "price": {
+    "selectors": [".price-new", ".price"],
+    "transforms": ["clean_text", "text_to_price"]
+  },
+  "title": {
+    "selectors": [".product-title", "h1"],
+    "transforms": ["clean_text", "strip_whitespace"]
+  },
+  "product_code": {
+    "selectors": [".sku"],
+    "transforms": [
+      {"name": "regex_extract", "pattern": "(\\d+)"},
+      "extract_numbers"
+    ]
+  }
+}
+```
+
+## 🌐 Управление прокси
+
+Domesticator поддерживает использование прокси-серверов для обхода блокировок и ротации IP-адресов.
+
+### API для управления прокси
+
+#### Получить список прокси
+```bash
+GET /v0/proxies
+```
+**Ответ:**
+```json
+{
+  "proxies": [
+    "http://user:pass@proxy1.example.com:8080",
+    "socks5://user:pass@proxy2.example.com:1080"
+  ]
+}
+```
+
+#### Добавить прокси
+```bash
+POST /v0/proxies/add
+Content-Type: application/json
+
+{
+  "proxy_url": "http://user:password@proxy.example.com:8080"
+}
+```
+
+#### Удалить прокси
+```bash
+DELETE /v0/proxies/http%3A//user%3Apass%40proxy.example.com%3A8080
+```
+
+### Поддерживаемые форматы прокси
+
+- **HTTP прокси:** `http://user:pass@host:port`
+- **HTTPS прокси:** `https://user:pass@host:port`
+- **SOCKS5 прокси:** `socks5://user:pass@host:port`
+
+### Автоматическая ротация
+
+- Прокси автоматически используются при наличии в списке
+- Система ротирует прокси между запросами для избежания блокировок
+- При ошибке прокси автоматически переключается на следующий
+
+## 🔧 Примеры API запросов
+
+### Базовые проверки
+
+#### Проверка здоровья сервиса
+```bash
+GET http://localhost:8000/health
+```
+
+#### Статус API
+```bash
+GET http://localhost:8000/v0/status
+```
+
+### Управление конфигурациями хостов
+
+#### Получить все конфигурации
+```bash
+GET http://localhost:8000/v0/config/hosts
+```
+
+#### Получить конфигурацию для trendyol.com
+```bash
+GET http://localhost:8000/v0/config/hosts/trendyol.com
+```
+
+#### Получить конфигурацию для amazon.com.tr
+```bash
+GET http://localhost:8000/v0/config/hosts/amazon.com.tr
+```
+
+#### Добавить конфигурацию хоста
+```bash
+POST http://localhost:8000/v0/config/hosts/example.com?strategy=default
+Content-Type: application/json
+
+{
+  "wait_until": "domcontentloaded",
+  "field_extractors": {
+    "title": {"selectors": ["h1"], "required": false, "transforms": ["clean_text"]}
+  }
+}
+```
+
+#### Обновить конфигурацию
+```bash
+PUT http://localhost:8000/v0/config/hosts/example.com?strategy=default
+Content-Type: application/json
+
+{
+  "wait_until": "load",
+  "field_extractors": {...}
+}
+```
+
+#### Удалить конфигурацию
+```bash
+DELETE http://localhost:8000/v0/config/hosts/example.com?strategy=default
+```
+
+### Скрейпинг сайтов
+
+#### Базовый запрос (httpbin для тестов)
+```bash
+POST http://localhost:8000/v0/crawl
+Content-Type: application/json
+
+{
+    "targets": [
+        {
+            "url": "https://httpbin.org/headers",
+            "with_page_content": {"type": "unrendered"},
+            "require_host_config": false,
+            "performance_mode": false
+        }
+    ]
+}
+```
+
+#### Скрейпинг Trendyol товаров
+```bash
+POST http://localhost:8000/v0/crawl
+Content-Type: application/json
+
+{
+    "targets": [
+        {"url": "https://www.trendyol.com/trend-alacati-stili/kadin-beyaz-bisiklet-yaka-kalp-nakisli-iki-iplik-oversize-t-shirt-alc-x13912-p-930998272"},
+        {"url": "https://www.trendyol.com/xiaomi/redmi-13-8-gb-ram-256-gb-sari-cep-telefonu-xiaomi-turkiye-garantili-p-836127383"},
+        {"url": "https://www.trendyol.com/apple/iphone-16-128gb-pembe-p-857296122"}
+    ]
+}
+```
+
+#### Скрейпинг Amazon.com.tr товаров
+```bash
+POST http://localhost:8000/v0/crawl
+Content-Type: application/json
+
+{
+    "targets": [
+        {
+            "url": "https://www.amazon.com.tr/Apple-iPhone-16-512-GB/dp/B0DGJ6B6SP"
+        }
+    ]
+}
+```
+
+#### Скрейпинг N11.com товаров
+```bash
+POST http://localhost:8000/v0/crawl
+Content-Type: application/json
+
+{
+    "targets": [
+        {
+            "url": "https://www.n11.com/urun/apple-iphone-15-128-gb-apple-turkiye-garantili-43821353?magaza=cephaneteknoloji&renk=sari"
+        }
+    ]
+}
+```
+
+### Управление прокси
+
+#### Получить список прокси
+```bash
+GET http://localhost:8000/v0/proxies
+```
+
+#### Добавить прокси
+```bash
+POST http://localhost:8000/v0/proxies/add
+Content-Type: application/json
+
+{
+    "proxy_url": "http://user:password@proxy.example.com:8080"
+}
+```
+
+#### Удалить прокси
+```bash
+DELETE http://localhost:8000/v0/proxies/http%3A//user%3Apass%40proxy.example.com%3A8080
+```
+
+## 🗄️ Интеграция с Logbroker и Protobuf
+
+Domesticator автоматически отправляет результаты скрейпинга в Logbroker через protobuf сообщения.
+
+### Настройка protobuf
+
+Для работы с protobuf выполните:
+
+```bash
+# Локальная разработка
+make generate/proto    # Генерация protobuf файлов
+make install           # Установка зависимостей
+
+# Docker (автоматически)
+make build            # Сборка автоматически сгенерирует protobuf файлы
+```
+
+### Структура protobuf сообщения
+
+Используется протобуф `TWildPriceInput` из `streamer/proto/event.proto`:
+
+```python
+from shared.proto.event_pb2 import TWildPriceInput, EWildPriceInputType
+import time
+
+# Создание сообщения
+message = TWildPriceInput()
+message.Url = "https://example.com"
+message.Price = 123456  # Цена в копейках
+message.Type = EWildPriceInputType.COTICO_PARSER
+message.UpdateTimestamp = int(time.time())
+```
+
+### Автоматическая отправка
+
+- Результаты скрейпинга автоматически конвертируются в protobuf сообщения
+- Отправка в Logbroker происходит после успешного извлечения данных
+- При ошибках отправки операция продолжается без прерывания
+
+### Команды для работы с protobuf
+
+- `make generate/proto` - Генерация protobuf файлов из `.proto`
+- Сгенерированные файлы находятся в `shared/proto/`
+
+## 🛡️ Система обхода защиты
+
+Domesticator включает специализированные модули для обхода различных систем защиты:
+
+### Cloudflare Bypass
+- Автоматическое определение и обход Cloudflare защиты
+- Поддержка JavaScript challenges
+- Stealth режим браузера
+
+### Amazon Bypass
+- Специфичные настройки для amazon.com.tr
+- Обход bot detection
+- Имитация человеческого поведения
+
+### Stealth Browser
+- Скрытие автоматизации браузера
+- Рандомизация User-Agent
+- Имитация естественных паттернов навигации
+
+## 🛠 Разработка
+
+### Структура проекта
+
+```
+domesticator/
+├── http_api/          # HTTP сервер
+│   ├── routes/           # API маршруты
+│   ├── run.py             # Точка входа (uvicorn http_api.run:server)
+│   └── routers.py         # Регистрация маршрутов
+├── configs/               # Конфигурации хостов
+│   └── hosts.json         # JSON конфигурации
+├── shared/                # Общие компоненты
+│   ├── browser/           # Управление браузерами
+│   │   ├── bypass/        # Системы обхода защиты
+│   │   ├── crawler.py     # Логика скрейпинга
+│   │   ├── crawl.py       # Оркестрация краула
+│   │   └── manager.py     # Управление браузером
+│   ├── transform/         # Система трансформации
+│   │   └── transformers/  # Функции трансформации
+│   └── utils/             # Утилиты
+└── tests/                 # Тесты (50+ тестов)
+```
+
+### Локальная разработка
+
+```bash
+# Установка зависимостей
+make install         # или uv sync
+
+# Запуск с автоперезагрузкой
+make dev             # или uv run uvicorn http_api.run:server --reload
+
+# Качество кода
+make lint            # Проверка стиля
+make format          # Форматирование
+make test            # Запуск тестов
+```
+
+### Docker разработка
+
+```bash
+# Сборка и запуск
+make build VERSION=v1.0.0
+make run PORT=8000
+
+# Отладка
+make logs            # Просмотр логов
+make shell           # Подключение к контейнеру
+make health          # Проверка здоровья
+```
+
+## 📊 Поддерживаемые форматы данных
+
+### Цены (text_to_price)
+- **Валюты:** ₽, $, €, £, ¥, ₴, ₸, ₺, ₩ и др.
+- **Форматы:** `₽ 1 234,56`, `$12,345.67`, `€1.234,50`
+- **Результат:** Копейки/центы как целые числа
+
+**Примеры обработки:**
+- `"₽ 1 234,56"` → `123456` (123456 копеек = 1234.56 рублей)
+- `"$12,345.67 USD"` → `1234567` (1234567 центов = 12345.67 долларов)
+- `"€1.234,50"` → `123450` (123450 евроцентов = 1234.50 евро)
+- `"₺ 2.999,95 TL"` → `299995` (299995 куруш = 2999.95 лир)
+
+## 🚢 Развертывание
+
+### Docker контейнер
+```bash
+# Полное развертывание
+make deploy          # build + push + restart
+
+# Пошагово
+make build           # Сборка образа
+make push            # Загрузка в реестр
+make pull            # Скачивание из реестра
+make run             # Запуск контейнера
+```
+
+### Конфигурация
+```bash
+# Кастомные переменные
+make build VERSION=v1.0.0
+make run PORT=3000
+make push REGISTRY=your-registry.com NAMESPACE=your-namespace
+```
+
+## 📝 Примеры конфигураций
+
+### E-commerce сайт
+```json
+{
+  "shop.example.com": {
+    "field_extractors": {
+      "price": {
+        "selectors": [".price-current", ".price"],
+        "transforms": ["clean_text", "text_to_price"]
+      },
+      "old_price": {
+        "selectors": [".price-old"],
+        "transforms": ["clean_text", "text_to_price"]
+      },
+      "title": {
+        "selectors": [".product-title", "h1"],
+        "transforms": ["clean_text", "strip_whitespace"]
+      },
+      "images": {
+        "selectors": [
+          {"value": ".gallery img", "attribute": "src"}
+        ],
+        "multiple": true
+      },
+      "availability": {
+        "selectors": [".stock-status"],
+        "transforms": ["strip_whitespace", "to_lower"]
+      }
+    },
+    "pre_actions": [
+      {"action_type": "wait", "timeout": 2000},
+      {"action_type": "click", "selector": ".show-all-photos"}
+    ]
+  }
+}
+```
+
+## 📋 Технические требования
+
+- **Python:** 3.12
+- **Основные зависимости:**
+  - FastAPI ≥0.104.0
+  - Crawlee[playwright] (браузерная автоматизация)
+  - Uvicorn[standard] ≥0.24.0 (ASGI сервер)
+  - fake-useragent ≥2.2.0 (генерация User-Agent)
+  - protobuf ≥4.21.0 (интеграция с Logbroker)
+  - grpcio-tools ≥1.50.0 (генерация protobuf файлов)
+  - ydb ≥3.21.9 (интеграция с YDB)
+- **Инструменты разработки:**
+  - Ruff ≥0.1.0 (форматирование и линтинг)
+  - Pytest ≥7.4.0 (тестирование)
+  - uv (управление зависимостями)
+
+## 🎯 Возможности
+
+- ✅ **Множественные селекторы значения** - fallback между CSS селекторами
+- ✅ **Система трансформации данных** - 20+ функций преобразования (см. документацию выше)
+- ✅ **Точность цен** - работа с копейками избегает проблем float
+- ✅ **Управление прокси** - автоматическая ротация и обход блокировок
+- ✅ **Системы обхода защиты** - Cloudflare, Amazon и другие
+- ✅ **Stealth браузер** - скрытие автоматизации и имитация человека
+- ✅ **REST API** - полноценное управление через HTTP эндпоинты
+- ✅ **Конфигурируемые действия** - wait, click, scroll, input на странице
+- ✅ **Извлечение атрибутов** - src, href и любые HTML атрибуты
+- ✅ **Множественные значения** - массивы данных (изображения, ссылки)
+- ✅ **Универсальные валюты** - поддержка ₽, $, €, £, ¥, ₴, ₸, ₺ и других

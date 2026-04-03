@@ -23,7 +23,7 @@ install: ## Установка зависимостей
 
 dev: ## Локальный запуск с hot reload
 	@test -f .env.local || cp .env.local.example .env.local
-	APP_ENV=development uv run uvicorn http_api.run:server --reload --host 0.0.0.0 --port $(PORT)
+	APP_ENV=development uv run python -m http_api.serve
 
 test: ## Запуск тестов
 	uv run pytest -v

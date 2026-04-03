@@ -1,14 +1,8 @@
 from __future__ import annotations
 
-import asyncio
 import logging
 import os
-import sys
 from contextlib import asynccontextmanager
-
-# Windows requires ProactorEventLoop for subprocess support (Playwright)
-if sys.platform == "win32":
-    asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
 
 from fastapi import FastAPI
 

@@ -92,4 +92,4 @@ echo ===================================
 echo.
 set APP_ENV=development
 start "" http://localhost:8000
-%UV% run uvicorn http_api.run:server --reload --host 0.0.0.0 --port 8000
+%UV% run python -m http_api.serve

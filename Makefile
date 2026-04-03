@@ -1,4 +1,4 @@
-.PHONY: help start install dev test lint format build run logs shell health pg/up pg/down generate/proto deploy push pull
+.PHONY: help setup start install dev test lint format build run logs shell health pg/up pg/down generate/proto deploy push pull
 
 # Переменные
 IMAGE_NAME ?= domesticator
@@ -8,13 +8,10 @@ REGISTRY ?= docker.io
 NAMESPACE ?= domesticator
 CONTAINER_NAME ?= domesticator
 
-start: ## Установка + запуск (одна команда)
-	@echo "==> Installing dependencies..."
-	uv sync --all-extras
-	@echo "==> Installing Chromium browser..."
-	uv run playwright install chromium
-	@echo "==> Copying .env.local if missing..."
-	@test -f .env.local || cp .env.local.example .env.local
+setup: ## Установка всех зависимостей (Python, Node, uv, Chromium)
+	@bash setup.sh
+
+start: setup ## Полная установка + запуск сервера
 	@echo "==> Starting server on http://localhost:$(PORT) ..."
 	APP_ENV=development uv run uvicorn http_api.run:server --reload --host 0.0.0.0 --port $(PORT)
 

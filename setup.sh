@@ -142,7 +142,17 @@ info "Installing project dependencies..."
 uv sync --all-extras
 
 info "Installing Chromium browser..."
-uv run playwright install chromium
+uv run playwright install chromium --with-deps || uv run playwright install chromium
+
+info "Verifying browser..."
+uv run python -c "
+from playwright.sync_api import sync_playwright
+p = sync_playwright().start()
+b = p.chromium.launch(headless=True)
+b.close()
+p.stop()
+print('Browser OK')
+" && info "Browser works" || warn "Browser verification failed — crawl may not work"
 
 # --- .env.local ---
 if [[ ! -f .env.local ]]; then

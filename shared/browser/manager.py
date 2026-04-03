@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import traceback
 
 from playwright.async_api import Browser, Playwright, async_playwright
 
@@ -29,8 +30,9 @@ class BrowserManager:
             self.start_error = None
             logger.info("Browser started")
         except Exception as exc:
-            self.start_error = str(exc)
-            logger.error("Browser failed to start: %s", exc)
+            tb = traceback.format_exc()
+            self.start_error = f"{type(exc).__name__}: {exc}\n{tb}"
+            logger.error("Browser failed to start:\n%s", tb)
 
     async def stop(self) -> None:
         if self._browser:

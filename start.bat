@@ -6,9 +6,11 @@ echo   Domesticator — Windows Setup
 echo ===================================
 echo.
 
-:: --- Check Python ---
+:: --- Determine Python command ---
+set PY=python
 python --version >nul 2>&1
 if %errorlevel% neq 0 (
+    set PY=python3
     python3 --version >nul 2>&1
     if %errorlevel% neq 0 (
         echo [!] Python not found. Install Python 3.12+ from https://python.org
@@ -28,21 +30,18 @@ if %errorlevel% neq 0 (
 )
 echo [+] Node.js found
 
-:: --- Install uv ---
-uv --version >nul 2>&1
+:: --- Install uv via pip ---
+echo [*] Ensuring uv is installed...
+%PY% -m pip install uv --quiet 2>nul
 if %errorlevel% neq 0 (
-    echo [!] Installing uv...
-    pip install uv
-    if %errorlevel% neq 0 (
-        pip3 install uv
-    )
+    %PY% -m pip install uv
 )
 echo [+] uv ready
 
 :: --- Install dependencies ---
 echo.
 echo [*] Installing project dependencies...
-uv sync --all-extras
+%PY% -m uv sync --all-extras
 if %errorlevel% neq 0 (
     echo [!] Failed to install dependencies
     pause
@@ -52,7 +51,7 @@ if %errorlevel% neq 0 (
 :: --- Install Chromium ---
 echo.
 echo [*] Installing Chromium browser...
-uv run playwright install chromium
+%PY% -m uv run playwright install chromium
 if %errorlevel% neq 0 (
     echo [!] Failed to install Chromium
     pause
@@ -73,4 +72,4 @@ echo   UI: http://localhost:8000
 echo ===================================
 echo.
 set APP_ENV=development
-uv run uvicorn http_api.run:server --reload --host 0.0.0.0 --port 8000
+%PY% -m uv run uvicorn http_api.run:server --reload --host 0.0.0.0 --port 8000

@@ -31,7 +31,6 @@ class BrowserManager:
         except Exception as exc:
             self.start_error = str(exc)
             logger.error("Browser failed to start: %s", exc)
-            raise
 
     async def stop(self) -> None:
         if self._browser:

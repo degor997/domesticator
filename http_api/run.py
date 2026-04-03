@@ -65,10 +65,7 @@ async def lifespan(app: FastAPI):
                 app.state.proxy_manager.add(proxy)
 
     app.state.browser_manager = BrowserManager()
-    try:
-        await app.state.browser_manager.start()
-    except Exception:
-        logger.warning("Browser failed to start — crawl will be unavailable", exc_info=True)
+    await app.state.browser_manager.start()
 
     logger.info("Domesticator started")
     yield

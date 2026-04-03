@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Request
 from fastapi.responses import FileResponse
 
 router = APIRouter()
@@ -21,5 +21,9 @@ async def ping():
 
 
 @router.get("/health")
-async def health():
-    return {"status": "ok"}
+async def health(request: Request):
+    bm = request.app.state.browser_manager
+    result = {"status": "ok", "browser": bm.is_running}
+    if bm.start_error:
+        result["browser_error"] = bm.start_error
+    return result

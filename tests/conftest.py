@@ -28,6 +28,7 @@ async def config_store():
 def browser_manager():
     bm = MagicMock(spec=BrowserManager)
     bm.is_running = True
+    bm.start_error = None
     bm.start = AsyncMock()
     bm.stop = AsyncMock()
     bm.new_context = AsyncMock()

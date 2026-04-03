@@ -13,18 +13,25 @@ class BrowserManager:
     def __init__(self) -> None:
         self._playwright: Playwright | None = None
         self._browser: Browser | None = None
+        self.start_error: str | None = None
 
     async def start(self) -> None:
-        self._playwright = await async_playwright().start()
-        self._browser = await self._playwright.chromium.launch(
-            headless=True,
-            args=[
-                "--disable-blink-features=AutomationControlled",
-                "--no-sandbox",
-                "--disable-dev-shm-usage",
-            ],
-        )
-        logger.info("Browser started")
+        try:
+            self._playwright = await async_playwright().start()
+            self._browser = await self._playwright.chromium.launch(
+                headless=True,
+                args=[
+                    "--disable-blink-features=AutomationControlled",
+                    "--no-sandbox",
+                    "--disable-dev-shm-usage",
+                ],
+            )
+            self.start_error = None
+            logger.info("Browser started")
+        except Exception as exc:
+            self.start_error = str(exc)
+            logger.error("Browser failed to start: %s", exc)
+            raise
 
     async def stop(self) -> None:
         if self._browser:
@@ -37,7 +44,8 @@ class BrowserManager:
 
     async def new_context(self, *, proxy: str | None = None):  # noqa: ANN204
         if self._browser is None:
-            raise RuntimeError("Browser not started")
+            err = self.start_error or "unknown reason"
+            raise RuntimeError(f"Browser not available ({err}). Run: playwright install chromium --with-deps")
 
         viewport = get_random_viewport()
         user_agent = get_random_user_agent()

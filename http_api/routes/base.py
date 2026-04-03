@@ -23,7 +23,9 @@ async def ping():
 @router.get("/health")
 async def health(request: Request):
     bm = request.app.state.browser_manager
-    result = {"status": "ok", "browser": bm.is_running}
-    if bm.start_error:
-        result["browser_error"] = bm.start_error
+    result = {
+        "status": "ok",
+        "browser": bm.is_running,
+        "browser_error": bm.start_error,
+    }
     return result

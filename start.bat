@@ -59,6 +59,10 @@ if %errorlevel% neq 0 (
 )
 echo [+] uv ready
 
+:: --- Clean Python cache ---
+echo [*] Cleaning cache...
+for /d /r . %%d in (__pycache__) do @if exist "%%d" rd /s /q "%%d" 2>nul
+
 :: --- Install project dependencies ---
 echo.
 echo [*] Installing project dependencies...

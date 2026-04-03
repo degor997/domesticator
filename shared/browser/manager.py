@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import asyncio
 import logging
+import sys
 import traceback
 
 from playwright.async_api import Browser, Playwright, async_playwright
@@ -8,6 +10,17 @@ from playwright.async_api import Browser, Playwright, async_playwright
 from shared.browser.bypass.stealth import get_random_user_agent, get_random_viewport
 
 logger = logging.getLogger(__name__)
+
+
+def _ensure_proactor_on_windows() -> None:
+    """Windows requires ProactorEventLoop for subprocess support in asyncio."""
+    if sys.platform != "win32":
+        return
+    loop = asyncio.get_event_loop()
+    if not isinstance(loop, asyncio.ProactorEventLoop):
+        logger.info("Switching to ProactorEventLoop for Windows subprocess support")
+        loop = asyncio.ProactorEventLoop()
+        asyncio.set_event_loop(loop)
 
 
 class BrowserManager:
@@ -18,6 +31,7 @@ class BrowserManager:
 
     async def start(self) -> None:
         try:
+            _ensure_proactor_on_windows()
             self._playwright = await async_playwright().start()
             self._browser = await self._playwright.chromium.launch(
                 headless=True,

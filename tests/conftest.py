@@ -10,11 +10,12 @@ from http_api.routers import register_routers
 from shared.browser.manager import BrowserManager
 from shared.config.memory_store import MemoryConfigStore
 from shared.proxy.manager import ProxyManager
+from shared.proxy.memory_store import MemoryProxyStore
 
 
 @pytest.fixture
 def proxy_manager():
-    return ProxyManager()
+    return ProxyManager(MemoryProxyStore())
 
 
 @pytest.fixture

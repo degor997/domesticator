@@ -28,46 +28,209 @@
             {"name": "text_contains", "search": "tl"},
             {"name": "true_to_text", "new": "TRY"}
           ]
+        },
+        "availability": {
+          "selectors": [".productDetailWrapper .add-to-cart-button-text"],
+          "transforms": [
+            "clean_text",
+            "to_lower",
+            {"name": "text_contains", "search": "sepete ekle"}
+          ]
+        },
+        "name": {
+          "selectors": [
+            ".productDetailWrapper .product-title",
+            {"value": "meta[property='og:title']", "attribute": "content"}
+          ],
+          "transforms": ["clean_text"]
+        },
+        "image": {
+          "selectors": [
+            {"value": "meta[property='og:image']", "attribute": "content"}
+          ],
+          "transforms": ["clean_text"]
         }
       }
     }
   },
   "amazon.com.tr": {
     "default": {
+      "wait_until": "load",
       "field_extractors": {
         "price": {
           "selectors": [
-            ".priceToPay .a-price-whole",
-            ".a-price.a-text-price.a-size-medium.apexPriceToPay .a-offscreen",
-            ".a-price .a-offscreen"
+            {"value": "#priceValue", "attribute": "value"},
+            {"value": "#addToCart input[name='items[0.base][customerVisiblePrice][amount]']", "attribute": "value"}
           ],
           "required": true,
           "transforms": ["clean_text", "text_to_price"]
         },
         "old_price": {
           "selectors": [
-            ".a-price-base .a-offscreen",
-            ".a-text-strike .a-offscreen"
+            "#corePriceDisplay_desktop_feature_div .basisPrice .a-offscreen",
+            "#corePriceDisplay_desktop_feature_div .basisPrice span[aria-hidden='true']"
           ],
           "required": false,
           "transforms": ["clean_text", "text_to_price"]
+        },
+        "currency": {
+          "selectors": [
+            {"value": "#priceSymbol", "attribute": "value"},
+            {"value": "#addToCart input[name='items[0.base][customerVisiblePrice][currencyCode]']", "attribute": "value"}
+          ],
+          "transforms": [
+            "clean_text",
+            "to_lower",
+            {"name": "text_contains", "search": "try"},
+            {"name": "true_to_text", "new": "TRY"}
+          ]
+        },
+        "availability": {
+          "selectors": [
+            {"value": "#addToCart #add-to-cart-button", "attribute": "value"}
+          ],
+          "transforms": [
+            "clean_text",
+            "to_lower",
+            {"name": "text_contains", "search": "sepete ekle"}
+          ]
+        },
+        "name": {
+          "selectors": [
+            "#productTitle",
+            {"value": "meta[name='title']", "attribute": "content"}
+          ],
+          "transforms": ["clean_text"]
+        },
+        "image": {
+          "selectors": [
+            {"value": "#imgTagWrapperId img#landingImage", "attribute": "data-old-hires"},
+            {"value": "#imgTagWrapperId img#landingImage", "attribute": "src"}
+          ],
+          "transforms": ["clean_text"]
+        }
+      }
+    }
+  },
+  "hepsiburada.com": {
+    "default": {
+      "wait_until": "load",
+      "field_extractors": {
+        "price": {
+          "selectors": [
+            "section[aria-label] div[data-test-id='price'] div[data-test-id='checkout-price'] > div:nth-child(2)",
+            "section[aria-label] div[data-test-id='price'] div[data-test-id='default-price'] > div:nth-child(1)",
+            ".z7kokklsVwh0K5zFWjIO.nUoGYtEwzHyrjX2lvABI",
+            ".z7kokklsVwh0K5zFWjIO"
+          ],
+          "required": true,
+          "transforms": ["clean_text", "text_to_price"]
+        },
+        "old_price": {
+          "selectors": [
+            "section[aria-label] div[data-test-id='price'] div[data-test-id='prev-price']"
+          ],
+          "required": false,
+          "transforms": ["clean_text", "text_to_price"]
+        },
+        "currency": {
+          "selectors": [
+            "section[aria-label] div[data-test-id='price'] div[data-test-id='checkout-price'] > div:nth-child(2)",
+            "section[aria-label] div[data-test-id='price'] div[data-test-id='default-price']",
+            ".z7kokklsVwh0K5zFWjIO.nUoGYtEwzHyrjX2lvABI",
+            ".z7kokklsVwh0K5zFWjIO"
+          ],
+          "transforms": [
+            "clean_text",
+            "to_lower",
+            {"name": "text_contains", "search": "tl"},
+            {"name": "true_to_text", "new": "TRY"}
+          ]
+        },
+        "availability": {
+          "selectors": [
+            "section[aria-label] button[data-test-id='addToCart']:not([disabled])"
+          ],
+          "transforms": [
+            "clean_text",
+            "to_lower",
+            {"name": "text_contains", "search": "sepete ekle"}
+          ]
+        },
+        "name": {
+          "selectors": [
+            "h1[data-test-id='title']",
+            "title",
+            {"value": "meta[name='title']", "attribute": "content"}
+          ],
+          "transforms": ["clean_text"]
+        },
+        "image": {
+          "selectors": [
+            {"value": ".bginxchshkIzmv7Gaym5 img.hb-HbImage-view__image", "attribute": "src"},
+            {"value": ".XqjH_GFfClVrNoHyvQQm img", "attribute": "src"}
+          ],
+          "transforms": ["clean_text"]
         }
       }
     }
   },
   "n11.com": {
     "default": {
-      "performance_mode": true,
+      "wait_until": "load",
+      "pre_actions": [
+        {"action_type": "wait", "timeout": 1000}
+      ],
       "field_extractors": {
         "price": {
-          "selectors": [".newPrice", ".price", ".unvan .price"],
+          "selectors": [
+            ".product-detail .price-wrapper .newPrice",
+            ".product-detail .price-wrapper .price"
+          ],
           "required": true,
           "transforms": ["clean_text", "text_to_price"]
         },
         "old_price": {
-          "selectors": [".oldPrice", ".old-price"],
+          "selectors": [
+            ".product-detail .price-wrapper .oldPrice",
+            ".product-detail .price-wrapper .displayPrice"
+          ],
           "required": false,
           "transforms": ["clean_text", "text_to_price"]
+        },
+        "currency": {
+          "selectors": [
+            ".product-detail .price-wrapper .newPrice",
+            ".product-detail .price-wrapper .oldPrice",
+            ".product-detail .price-wrapper .displayPrice"
+          ],
+          "transforms": [
+            "clean_text",
+            "to_lower",
+            {"name": "text_contains", "search": "tl"},
+            {"name": "true_to_text", "new": "TRY"}
+          ]
+        },
+        "availability": {
+          "selectors": [
+            {"value": ".product-detail #addToBasket", "attribute": "aria-label"},
+            ".product-detail #addToBasket"
+          ],
+          "transforms": [
+            "clean_text",
+            "to_lower",
+            {"name": "text_contains", "search": "sepete ekle"}
+          ]
+        },
+        "name": {
+          "selectors": [".product-detail h1.title"],
+          "transforms": ["clean_text"]
+        },
+        "image": {
+          "selectors": [
+            {"value": ".product-detail .productHead .swiper-image-0", "attribute": "src"}
+          ],
+          "transforms": ["clean_text"]
         }
       }
     }
@@ -84,11 +247,268 @@
           "required": true,
           "transforms": ["clean_text", "text_to_price"]
         },
+        "old_price": {
+          "selectors": [
+            {"value": "meta[property='og:price:amount']", "attribute": "content"}
+          ],
+          "required": false,
+          "transforms": ["clean_text", "text_to_price"]
+        },
         "currency": {
           "selectors": [
             {"value": "meta[property='og:price:currency']", "attribute": "content"}
           ],
+          "transforms": [
+            "clean_text",
+            "to_lower",
+            {"name": "text_contains", "search": "tl"},
+            {"name": "true_to_text", "new": "TRY"}
+          ]
+        },
+        "availability": {
+          "selectors": [
+            {"value": "meta[property='og:price:amount']", "attribute": "content"}
+          ],
+          "transforms": [
+            "clean_text",
+            "to_lower",
+            {"name": "text_equals", "search": "0 tl"},
+            "toggle_boolean"
+          ]
+        },
+        "name": {
+          "selectors": [
+            "div.flex.flex-col h1",
+            "h1",
+            {"value": "meta[property='og:title']", "attribute": "content"}
+          ],
+          "transforms": ["clean_text"]
+        },
+        "image": {
+          "selectors": [
+            {"value": "meta[property='og:image']", "attribute": "content"}
+          ],
+          "transforms": ["clean_text"]
+        }
+      }
+    }
+  },
+  "pazarama.com": {
+    "default": {
+      "field_extractors": {
+        "price": {
+          "selectors": [
+            ".product-detail div[page-name='detail'] .text-4xl.font-bold.text-red-600",
+            ".product-detail div[page-name='detail'] div[data-testid='product-card-discount'] .text-4xl.text-black.font-bold.-mt-1",
+            ".product-detail div[page-name='detail'] .text-4xl.font-bold.mb-1.text-gray-600"
+          ],
           "required": true,
+          "transforms": ["clean_text", "text_to_price"]
+        },
+        "old_price": {
+          "selectors": [
+            ".product-detail div[page-name='detail'] .text-lg.font-bold.text-red-600.mr-3"
+          ],
+          "required": false,
+          "transforms": ["clean_text", "text_to_price"]
+        },
+        "currency": {
+          "selectors": [
+            ".product-detail div[page-name='detail'] .text-4xl.font-bold.text-red-600",
+            ".product-detail div[page-name='detail'] .text-4xl.font-bold.mb-1.text-gray-600"
+          ],
+          "transforms": [
+            "clean_text",
+            "to_lower",
+            {"name": "text_contains", "search": "tl"},
+            {"name": "true_to_text", "new": "TRY"}
+          ]
+        },
+        "availability": {
+          "selectors": [
+            ".product-detail div[page-name='detail'] button.w-full[data-testid='base-addbasket-button']"
+          ],
+          "transforms": [
+            "clean_text",
+            "to_lower",
+            {"name": "text_contains", "search": "sepete ekle"}
+          ]
+        },
+        "name": {
+          "selectors": [
+            ".product-detail h1.text-huge.text-gray-600.font-bold",
+            ".product-detail h1"
+          ],
+          "transforms": ["clean_text"]
+        },
+        "image": {
+          "selectors": [
+            {"value": ".product-detail .w-147 .w-full.h-147 picture img", "attribute": "src"},
+            {"value": ".product-detail .w-full.h-147 picture img", "attribute": "src"}
+          ],
+          "transforms": ["clean_text"]
+        }
+      }
+    }
+  },
+  "turkcell.com.tr": {
+    "default": {
+      "wait_until": "load",
+      "field_extractors": {
+        "price": {
+          "selectors": [
+            {"value": "meta[name='cashPrice']", "attribute": "content"}
+          ],
+          "required": true,
+          "transforms": ["clean_text", "text_to_price"]
+        },
+        "old_price": {
+          "selectors": ["#product-detail .a-price__old"],
+          "required": false,
+          "transforms": ["clean_text", "text_to_price"]
+        },
+        "currency": {
+          "selectors": [
+            {"value": "meta[name='cashPrice']", "attribute": "content"},
+            "#product-detail .a-price"
+          ],
+          "transforms": [
+            "clean_text",
+            "to_lower",
+            {"name": "text_contains", "search": "tl"},
+            {"name": "true_to_text", "new": "TRY"}
+          ]
+        },
+        "availability": {
+          "selectors": [
+            {"value": "#product-detail .device-available[data-add-text='Sepete Ekle'][style='display: block']", "attribute": "data-add-text"}
+          ],
+          "transforms": [
+            "clean_text",
+            "to_lower",
+            {"name": "text_contains", "search": "sepete ekle"}
+          ]
+        },
+        "name": {
+          "selectors": [
+            ".product-detail__title-property h1",
+            "title",
+            {"value": "meta[name='searchTitle']", "attribute": "content"}
+          ],
+          "transforms": ["clean_text"]
+        },
+        "image": {
+          "selectors": [
+            {"value": ".swiper-slide-active img", "attribute": "data-zoom-image"},
+            {"value": "meta[property='og:image']", "attribute": "content"}
+          ],
+          "transforms": ["clean_text"]
+        }
+      }
+    }
+  },
+  "akakce.com": {
+    "default": {
+      "wait_until": "load",
+      "field_extractors": {
+        "specifications": {
+          "selectors": [
+            {
+              "container": "#DT_w .ppt tr",
+              "name": "td:first-child",
+              "value": "td:nth-child(2)"
+            }
+          ],
+          "transforms": ["clean_text"]
+        }
+      }
+    }
+  },
+  "pttavm.com": {
+    "default": {
+      "wait_until": "load",
+      "field_extractors": {
+        "price": {
+          "selectors": ["[class^=priceValueContainer]"],
+          "required": true,
+          "transforms": ["clean_text", "text_to_price"]
+        },
+        "currency": {
+          "selectors": ["[class^=priceValueContainer]"],
+          "transforms": [
+            "clean_text",
+            "to_lower",
+            {"name": "text_contains", "search": "tl"},
+            {"name": "true_to_text", "new": "TRY"}
+          ]
+        },
+        "availability": {
+          "selectors": ["[class^=addToCartButtonContainer]"],
+          "transforms": [
+            "clean_text",
+            "to_lower",
+            {"name": "text_contains", "search": "sepete ekle"}
+          ]
+        },
+        "name": {
+          "selectors": ["h1[class^=productName]"],
+          "transforms": ["clean_text"]
+        },
+        "image": {
+          "selectors": [
+            {"value": "[class^=productDetailMainContentTopGallery] [class*= priority__] img", "attribute": "src"}
+          ],
+          "transforms": ["clean_text"]
+        }
+      }
+    }
+  },
+  "kitapyurdu.com": {
+    "default": {
+      "performance_mode": true,
+      "field_extractors": {
+        "price": {
+          "selectors": [
+            ".price-new .value",
+            ".price-new",
+            {"value": "[itemprop='price']", "attribute": "content"}
+          ],
+          "required": true,
+          "transforms": ["clean_text", "text_to_price"]
+        },
+        "old_price": {
+          "selectors": [
+            ".price-old .value",
+            ".price-old"
+          ],
+          "required": false,
+          "transforms": ["clean_text", "text_to_price"]
+        },
+        "currency": {
+          "selectors": [
+            ".price-new .value",
+            ".price-new"
+          ],
+          "transforms": [
+            "clean_text",
+            "to_lower",
+            {"name": "text_contains", "search": "tl"},
+            {"name": "true_to_text", "new": "TRY"}
+          ]
+        },
+        "name": {
+          "selectors": [
+            {"value": "[itemprop='name']"},
+            "h1",
+            {"value": "meta[property='og:title']", "attribute": "content"}
+          ],
+          "transforms": ["clean_text"]
+        },
+        "image": {
+          "selectors": [
+            {"value": "[itemprop='image']", "attribute": "src"},
+            {"value": "meta[property='og:image']", "attribute": "content"}
+          ],
           "transforms": ["clean_text"]
         }
       }

@@ -54,10 +54,24 @@
     font-size: 14px;
     transition: all 0.15s;
     user-select: none;
+    display: flex;
+    align-items: center;
+    gap: 6px;
   }
 
   .tab:hover { color: #e1e4e8; }
   .tab.active { color: #f0f6fc; border-bottom-color: #1f6feb; }
+
+  .tab .count {
+    background: #30363d;
+    color: #8b949e;
+    font-size: 11px;
+    padding: 1px 7px;
+    border-radius: 10px;
+    font-weight: 500;
+  }
+
+  .tab.active .count { background: #1f6feb33; color: #79c0ff; }
 
   .container {
     max-width: 960px;
@@ -113,12 +127,17 @@
 
   button.danger:hover { background: #f85149; }
 
+  button.sm {
+    padding: 4px 10px;
+    font-size: 12px;
+  }
+
   button:disabled {
     opacity: 0.5;
     cursor: not-allowed;
   }
 
-  input, textarea {
+  input, textarea, select {
     background: #0d1117;
     color: #e1e4e8;
     border: 1px solid #30363d;
@@ -129,7 +148,7 @@
     font-family: inherit;
   }
 
-  input:focus, textarea:focus {
+  input:focus, textarea:focus, select:focus {
     outline: none;
     border-color: #1f6feb;
   }
@@ -163,7 +182,7 @@
     cursor: pointer;
   }
 
-  label.check input[type="checkbox"] { accent-color: #1f6feb; }
+  label.check input[type="checkbox"] { accent-color: #1f6feb; width: auto; }
 
   .host-list {
     display: flex;
@@ -175,7 +194,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 10px 14px;
+    padding: 12px 14px;
     background: #0d1117;
     border: 1px solid #30363d;
     border-radius: 6px;
@@ -190,10 +209,34 @@
     font-size: 14px;
   }
 
+  .host-item .meta {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 4px;
+    flex-wrap: wrap;
+  }
+
   .host-item .strategies {
     color: #8b949e;
     font-size: 12px;
   }
+
+  .tag {
+    display: inline-block;
+    font-size: 11px;
+    padding: 1px 7px;
+    border-radius: 10px;
+    font-weight: 500;
+    border: 1px solid;
+  }
+
+  .tag.active { background: #23863622; color: #3fb950; border-color: #23863655; }
+  .tag.draft { background: #d2992222; color: #d29922; border-color: #d2992255; }
+  .tag.disabled { background: #da363322; color: #f85149; border-color: #da363355; }
+  .tag.perf { background: #1f6feb22; color: #79c0ff; border-color: #1f6feb55; }
+  .tag.frozen { background: #8b949e22; color: #8b949e; border-color: #8b949e55; }
+  .tag.fields { background: #30363d; color: #8b949e; border-color: #30363d; }
 
   .proxy-item {
     display: flex;
@@ -236,19 +279,119 @@
   .mt { margin-top: 12px; }
   .mb { margin-bottom: 12px; }
   .gap { gap: 12px; }
+
+  .detail-section {
+    margin-bottom: 12px;
+  }
+
+  .detail-section h4 {
+    font-size: 13px;
+    color: #8b949e;
+    margin-bottom: 6px;
+    font-weight: 500;
+  }
+
+  .field-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .field-card {
+    background: #0d1117;
+    border: 1px solid #30363d;
+    border-radius: 6px;
+    padding: 10px 12px;
+  }
+
+  .field-card .field-name {
+    font-weight: 600;
+    font-size: 13px;
+    color: #f0f6fc;
+    margin-bottom: 4px;
+  }
+
+  .field-card .field-info {
+    font-size: 12px;
+    color: #8b949e;
+    line-height: 1.4;
+  }
+
+  .field-card .selector {
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    font-size: 11px;
+    color: #79c0ff;
+    background: #161b22;
+    padding: 2px 5px;
+    border-radius: 3px;
+    display: inline-block;
+    margin: 1px 0;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .strategy-tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 12px;
+  }
+
+  .strategy-tab {
+    padding: 5px 12px;
+    background: #21262d;
+    border: 1px solid #30363d;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 12px;
+    color: #8b949e;
+    transition: all 0.15s;
+  }
+
+  .strategy-tab:hover { color: #e1e4e8; }
+  .strategy-tab.active { background: #1f6feb33; border-color: #1f6feb; color: #79c0ff; }
+
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 8px;
+    padding: 12px 20px;
+    font-size: 13px;
+    color: #e1e4e8;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    z-index: 100;
+    animation: slideIn 0.2s ease-out;
+  }
+
+  .toast.success { border-color: #238636; }
+  .toast.error { border-color: #da3633; }
+
+  @keyframes slideIn {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+
+  @media (max-width: 640px) {
+    .field-grid { grid-template-columns: 1fr; }
+    .host-item { flex-direction: column; align-items: flex-start; gap: 8px; }
+  }
 </style>
 </head>
 <body>
 
 <header>
   <h1>Domesticator</h1>
-  <span class="badge">v1.0.0</span>
+  <span class="badge">v1.1.0</span>
 </header>
 
 <div class="tabs">
   <div class="tab active" data-tab="status">Status</div>
   <div class="tab" data-tab="crawl">Crawl</div>
-  <div class="tab" data-tab="hosts">Host Configs</div>
+  <div class="tab" data-tab="hosts">Host Configs <span class="count" id="hosts-count">-</span></div>
   <div class="tab" data-tab="proxies">Proxies</div>
 </div>
 
@@ -271,7 +414,7 @@
   <div class="panel" id="panel-crawl">
     <div class="card">
       <h3>Web Scraping</h3>
-      <textarea id="crawl-urls" placeholder="Enter URLs, one per line...&#10;https://www.trendyol.com/...&#10;https://www.amazon.com.tr/..."></textarea>
+      <textarea id="crawl-urls" placeholder="Enter URLs, one per line...&#10;https://www.trendyol.com/...&#10;https://www.hepsiburada.com/...&#10;https://www.amazon.com.tr/..."></textarea>
       <div class="row wrap mt">
         <label class="check"><input type="checkbox" id="crawl-require-config" checked> Require host config</label>
         <label class="check"><input type="checkbox" id="crawl-performance"> Performance mode</label>
@@ -289,12 +432,23 @@
   <div class="panel" id="panel-hosts">
     <div class="card">
       <h3>Host Configurations</h3>
-      <button onclick="loadHosts()" class="mb">Refresh</button>
+      <div class="row gap mb">
+        <button onclick="loadHosts()">Refresh</button>
+        <input id="hosts-search" placeholder="Filter hosts..." style="flex:1" oninput="filterHosts()">
+      </div>
       <div class="host-list" id="hosts-list"></div>
     </div>
     <div class="card" id="host-detail-card" style="display:none">
-      <h3>Config Detail</h3>
-      <div class="json-output" id="host-detail"></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <h3 style="margin-bottom:0" id="host-detail-title">Config Detail</h3>
+        <div style="display:flex;gap:6px">
+          <button class="sm" onclick="toggleDetailView()">Toggle JSON</button>
+          <button class="sm" onclick="document.getElementById('host-detail-card').style.display='none'">Close</button>
+        </div>
+      </div>
+      <div class="strategy-tabs" id="strategy-tabs"></div>
+      <div id="host-detail-structured"></div>
+      <div class="json-output" id="host-detail" style="display:none"></div>
     </div>
     <div class="card">
       <h3>Add Host Config</h3>
@@ -302,7 +456,7 @@
         <input id="add-hostname" placeholder="hostname (e.g. example.com)" style="flex:2">
         <input id="add-strategy" placeholder="strategy" value="default" style="flex:1">
       </div>
-      <textarea id="add-config" class="mt" placeholder='{"field_extractors": {"price": {"selectors": [".price"], "required": true, "transforms": ["clean_text", "text_to_price"]}}}'></textarea>
+      <textarea id="add-config" class="mt" rows="6" placeholder='{"field_extractors": {"price": {"selectors": [".price"], "required": true, "transforms": ["clean_text", "text_to_price"]}}}'></textarea>
       <button class="primary mt" onclick="addHostConfig()">Add Config</button>
     </div>
   </div>
@@ -324,6 +478,19 @@
 </div>
 
 <script>
+// --- State ---
+let allHostsData = {};
+let showJsonDetail = false;
+
+// --- Toast ---
+function toast(msg, type = 'success') {
+  const el = document.createElement('div');
+  el.className = 'toast ' + type;
+  el.textContent = msg;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 3000);
+}
+
 // --- Tabs ---
 document.querySelectorAll('.tab').forEach(tab => {
   tab.addEventListener('click', () => {
@@ -331,15 +498,13 @@ document.querySelectorAll('.tab').forEach(tab => {
     document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
     tab.classList.add('active');
     document.getElementById('panel-' + tab.dataset.tab).classList.add('active');
-
-    // Auto-load on tab switch
     if (tab.dataset.tab === 'hosts') loadHosts();
     if (tab.dataset.tab === 'proxies') loadProxies();
   });
 });
 
 // --- Helpers ---
-function json(el, data) {
+function jsonPretty(el, data) {
   el.textContent = JSON.stringify(data, null, 2);
 }
 
@@ -353,26 +518,32 @@ async function api(method, path, body) {
   return { status: res.status, data: await res.json() };
 }
 
+function esc(s) {
+  const d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+
 // --- Status ---
 async function checkStatus() {
   const out = document.getElementById('status-output');
   out.textContent = 'Loading...';
   const r = await api('GET', '/v0/status');
-  json(out, r.data);
+  jsonPretty(out, r.data);
 }
 
 async function checkHealth() {
   const out = document.getElementById('status-output');
   out.textContent = 'Loading...';
   const r = await api('GET', '/health');
-  json(out, r.data);
+  jsonPretty(out, r.data);
 }
 
 async function checkPing() {
   const out = document.getElementById('status-output');
   out.textContent = 'Loading...';
   const r = await api('GET', '/ping');
-  json(out, r.data);
+  jsonPretty(out, r.data);
 }
 
 // --- Crawl ---
@@ -400,7 +571,7 @@ async function doCrawl() {
 
   try {
     const r = await api('POST', '/v0/crawl', { targets });
-    json(out, r.data);
+    jsonPretty(out, r.data);
   } catch (e) {
     out.textContent = 'Error: ' + e.message;
   } finally {
@@ -415,44 +586,205 @@ async function loadHosts() {
   list.innerHTML = '<span style="color:#8b949e">Loading...</span>';
 
   const r = await api('GET', '/v0/config/hosts');
+  allHostsData = r.data;
+  document.getElementById('hosts-count').textContent = Object.keys(r.data).length;
+  renderHostList(r.data);
+}
+
+function filterHosts() {
+  const q = document.getElementById('hosts-search').value.toLowerCase();
+  if (!q) { renderHostList(allHostsData); return; }
+  const filtered = {};
+  for (const [h, s] of Object.entries(allHostsData)) {
+    if (h.toLowerCase().includes(q)) filtered[h] = s;
+  }
+  renderHostList(filtered);
+}
+
+function renderHostList(data) {
+  const list = document.getElementById('hosts-list');
   list.innerHTML = '';
 
-  for (const [hostname, strategies] of Object.entries(r.data)) {
+  const sorted = Object.entries(data).sort((a, b) => a[0].localeCompare(b[0]));
+
+  for (const [hostname, strategies] of sorted) {
     const strats = Object.keys(strategies);
+    const firstCfg = strategies[strats[0]] || {};
+    const fields = Object.keys(firstCfg.field_extractors || {});
+    const status = firstCfg.status || 'active';
+    const perf = firstCfg.performance_mode;
+    const frozen = firstCfg.frozen;
+
     const item = document.createElement('div');
     item.className = 'host-item';
+    item.onclick = (e) => { if (!e.target.closest('button')) viewHost(hostname); };
+
+    let tags = `<span class="tag ${status}">${status}</span>`;
+    if (perf) tags += `<span class="tag perf">perf</span>`;
+    if (frozen) tags += `<span class="tag frozen">frozen</span>`;
+    tags += `<span class="tag fields">${fields.length} fields</span>`;
+
     item.innerHTML = `
       <div>
-        <div class="name">${hostname}</div>
-        <div class="strategies">strategies: ${strats.join(', ')}</div>
+        <div class="name">${esc(hostname)}</div>
+        <div class="meta">
+          ${tags}
+          <span class="strategies">${strats.join(', ')}</span>
+        </div>
       </div>
       <div style="display:flex;gap:6px">
-        <button onclick="viewHost('${hostname}')">View</button>
-        <button class="danger" onclick="deleteHost('${hostname}')">Delete</button>
+        <button class="sm" onclick="event.stopPropagation();viewHost('${esc(hostname)}')">View</button>
+        <button class="sm danger" onclick="event.stopPropagation();deleteHost('${esc(hostname)}')">Delete</button>
       </div>
     `;
     list.appendChild(item);
   }
 
-  if (!Object.keys(r.data).length) {
+  if (!sorted.length) {
     list.innerHTML = '<span style="color:#8b949e">No host configs found</span>';
   }
+}
+
+function toggleDetailView() {
+  showJsonDetail = !showJsonDetail;
+  document.getElementById('host-detail').style.display = showJsonDetail ? 'block' : 'none';
+  document.getElementById('host-detail-structured').style.display = showJsonDetail ? 'none' : 'block';
 }
 
 async function viewHost(hostname) {
   const card = document.getElementById('host-detail-card');
   const out = document.getElementById('host-detail');
+  const structured = document.getElementById('host-detail-structured');
+  const title = document.getElementById('host-detail-title');
+
   card.style.display = 'block';
+  title.textContent = hostname;
   out.textContent = 'Loading...';
+  structured.innerHTML = '<span style="color:#8b949e">Loading...</span>';
+
   const r = await api('GET', '/v0/config/hosts/' + hostname);
-  json(out, r.data);
+  jsonPretty(out, r.data);
+
+  // Render strategy tabs
+  const strategies = Object.keys(r.data);
+  const tabsEl = document.getElementById('strategy-tabs');
+  tabsEl.innerHTML = '';
+  strategies.forEach((s, i) => {
+    const tab = document.createElement('span');
+    tab.className = 'strategy-tab' + (i === 0 ? ' active' : '');
+    tab.textContent = s;
+    tab.onclick = () => {
+      tabsEl.querySelectorAll('.strategy-tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      renderStructuredDetail(r.data[s], hostname, s);
+    };
+    tabsEl.appendChild(tab);
+  });
+
+  if (strategies.length > 0) {
+    renderStructuredDetail(r.data[strategies[0]], hostname, strategies[0]);
+  }
+
+  showJsonDetail = false;
+  out.style.display = 'none';
+  structured.style.display = 'block';
+
+  card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function renderStructuredDetail(config, hostname, strategy) {
+  const el = document.getElementById('host-detail-structured');
+  if (!config) { el.innerHTML = '<span style="color:#8b949e">No config</span>'; return; }
+
+  const status = config.status || 'active';
+  const perf = config.performance_mode ? 'Yes' : 'No';
+  const waitUntil = config.wait_until || 'networkidle';
+  const frozen = config.frozen ? 'Yes' : 'No';
+
+  let html = `
+    <div class="detail-section">
+      <h4>Settings</h4>
+      <div style="display:flex;gap:16px;flex-wrap:wrap;font-size:13px;color:#8b949e">
+        <span>Status: <span class="tag ${status}">${status}</span></span>
+        <span>Wait until: <strong style="color:#e1e4e8">${esc(waitUntil)}</strong></span>
+        <span>Performance: <strong style="color:#e1e4e8">${perf}</strong></span>
+        <span>Frozen: <strong style="color:#e1e4e8">${frozen}</strong></span>
+      </div>
+    </div>
+  `;
+
+  // Pre-actions
+  if (config.pre_actions && config.pre_actions.length) {
+    html += `<div class="detail-section"><h4>Pre-actions (${config.pre_actions.length})</h4>`;
+    for (const a of config.pre_actions) {
+      html += `<div style="font-size:12px;color:#8b949e;margin-bottom:2px">
+        <span class="selector">${esc(a.action_type)}</span>`;
+      if (a.selector) html += ` on <span class="selector">${esc(a.selector)}</span>`;
+      if (a.timeout) html += ` timeout: ${a.timeout}ms`;
+      html += `</div>`;
+    }
+    html += `</div>`;
+  }
+
+  // Field extractors
+  const extractors = config.field_extractors || {};
+  const fieldNames = Object.keys(extractors);
+  html += `<div class="detail-section"><h4>Field Extractors (${fieldNames.length})</h4><div class="field-grid">`;
+
+  for (const [name, ext] of Object.entries(extractors)) {
+    const selectors = (ext.selectors || []).slice(0, 3);
+    const selectorHtml = selectors.map(s => {
+      const val = typeof s === 'string' ? s : (s.value || JSON.stringify(s));
+      const attr = typeof s === 'object' && s.attribute ? ` [${s.attribute}]` : '';
+      return `<span class="selector" title="${esc(val + attr)}">${esc(val + attr)}</span>`;
+    }).join(' ');
+    const more = (ext.selectors || []).length > 3 ? `<span style="color:#8b949e;font-size:11px"> +${ext.selectors.length - 3} more</span>` : '';
+
+    const transforms = (ext.transforms || []).map(t => typeof t === 'string' ? t : t.name || '?').join(' > ');
+
+    html += `
+      <div class="field-card">
+        <div class="field-name">${esc(name)} ${ext.required ? '<span style="color:#f85149">*</span>' : ''}</div>
+        <div class="field-info">
+          ${selectorHtml}${more}
+          ${transforms ? `<div style="margin-top:4px;color:#d2a8ff;font-size:11px">${esc(transforms)}</div>` : ''}
+        </div>
+      </div>
+    `;
+  }
+
+  html += `</div></div>`;
+
+  // Delete strategy button
+  html += `<div style="margin-top:12px;display:flex;gap:8px">
+    <button class="sm danger" onclick="deleteHostStrategy('${esc(hostname)}','${esc(strategy)}')">Delete strategy "${esc(strategy)}"</button>
+  </div>`;
+
+  el.innerHTML = html;
 }
 
 async function deleteHost(hostname) {
   if (!confirm('Delete all configs for ' + hostname + '?')) return;
-  await api('DELETE', '/v0/config/hosts/' + hostname);
-  loadHosts();
-  document.getElementById('host-detail-card').style.display = 'none';
+  const r = await api('DELETE', '/v0/config/hosts/' + hostname);
+  if (r.status < 400) {
+    toast('Deleted ' + hostname);
+    loadHosts();
+    document.getElementById('host-detail-card').style.display = 'none';
+  } else {
+    toast('Error: ' + (r.data.detail || 'failed'), 'error');
+  }
+}
+
+async function deleteHostStrategy(hostname, strategy) {
+  if (!confirm(`Delete ${hostname} / ${strategy}?`)) return;
+  const r = await api('DELETE', '/v0/config/hosts/' + hostname + '?strategy=' + strategy);
+  if (r.status < 400) {
+    toast(`Deleted ${hostname} / ${strategy}`);
+    loadHosts();
+    document.getElementById('host-detail-card').style.display = 'none';
+  } else {
+    toast('Error: ' + (r.data.detail || 'failed'), 'error');
+  }
 }
 
 async function addHostConfig() {
@@ -460,22 +792,23 @@ async function addHostConfig() {
   const strategy = document.getElementById('add-strategy').value.trim() || 'default';
   const configText = document.getElementById('add-config').value.trim();
 
-  if (!hostname) { alert('Enter hostname'); return; }
+  if (!hostname) { toast('Enter hostname', 'error'); return; }
 
   let config;
   try {
     config = configText ? JSON.parse(configText) : { field_extractors: {} };
   } catch (e) {
-    alert('Invalid JSON: ' + e.message);
+    toast('Invalid JSON: ' + e.message, 'error');
     return;
   }
 
   const r = await api('POST', '/v0/config/hosts/' + hostname + '?strategy=' + strategy, config);
   if (r.status >= 400) {
-    alert('Error: ' + (r.data.detail || JSON.stringify(r.data)));
+    toast('Error: ' + (r.data.detail || JSON.stringify(r.data)), 'error');
   } else {
     document.getElementById('add-hostname').value = '';
     document.getElementById('add-config').value = '';
+    toast('Added ' + hostname);
     loadHosts();
   }
 }
@@ -488,7 +821,7 @@ async function loadProxies() {
   const r = await api('GET', '/v0/proxies');
   list.innerHTML = '';
 
-  if (!r.data.proxies.length) {
+  if (!r.data.proxies || !r.data.proxies.length) {
     list.innerHTML = '<span style="color:#8b949e">No proxies configured</span>';
     return;
   }
@@ -497,8 +830,8 @@ async function loadProxies() {
     const item = document.createElement('div');
     item.className = 'proxy-item';
     item.innerHTML = `
-      <span>${proxy}</span>
-      <button class="danger" onclick="removeProxy('${proxy}')">Remove</button>
+      <span>${esc(proxy)}</span>
+      <button class="sm danger" onclick="removeProxy('${esc(proxy)}')">Remove</button>
     `;
     list.appendChild(item);
   }
@@ -511,9 +844,10 @@ async function addProxy() {
 
   const r = await api('POST', '/v0/proxies/add', { proxy_url: url });
   if (r.status >= 400) {
-    alert('Error: ' + (r.data.detail || JSON.stringify(r.data)));
+    toast('Error: ' + (r.data.detail || JSON.stringify(r.data)), 'error');
   } else {
     input.value = '';
+    toast('Proxy added');
     loadProxies();
   }
 }
@@ -521,6 +855,7 @@ async function addProxy() {
 async function removeProxy(proxyUrl) {
   if (!confirm('Remove proxy?')) return;
   await api('DELETE', '/v0/proxies/' + encodeURIComponent(proxyUrl));
+  toast('Proxy removed');
   loadProxies();
 }
 </script>

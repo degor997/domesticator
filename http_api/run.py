@@ -10,6 +10,7 @@ from http_api.routers import register_routers
 from shared.browser.manager import BrowserManager
 from shared.config.memory_store import MemoryConfigStore
 from shared.proxy.manager import ProxyManager
+from shared.proxy.memory_store import MemoryProxyStore
 from shared.utils.logging import setup_logging
 
 logger = logging.getLogger(__name__)
@@ -48,21 +49,40 @@ async def _create_pg_store(pg_conn: str):
     return store
 
 
+async def _create_proxy_store(pg_pool=None):
+    proxy_list = os.getenv("PROXY_LIST", "")
+
+    if pg_pool is not None:
+        from shared.proxy.pg_store import PgProxyStore
+
+        store = PgProxyStore(pg_pool)
+        await store.init_schema()
+        await store.seed_if_empty(proxy_list)
+        logger.info("Using PostgreSQL proxy store")
+        return store
+
+    store = MemoryProxyStore()
+    for proxy in proxy_list.split(","):
+        proxy = proxy.strip()
+        if proxy:
+            await store.add(proxy)
+    logger.info("Using in-memory proxy store")
+    return store
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     setup_logging()
     logger.info("Starting Domesticator...")
 
     app.state.config_store = await _create_config_store()
-    app.state.proxy_manager = ProxyManager()
 
-    # Load proxies from env
-    proxy_list = os.getenv("PROXY_LIST", "")
-    if proxy_list:
-        for proxy in proxy_list.split(","):
-            proxy = proxy.strip()
-            if proxy:
-                app.state.proxy_manager.add(proxy)
+    # Extract pg pool if available for proxy store
+    pg_pool = getattr(app.state.config_store, "_pool", None)
+    proxy_store = await _create_proxy_store(pg_pool)
+
+    app.state.proxy_manager = ProxyManager(proxy_store)
+    await app.state.proxy_manager.reload()
 
     app.state.browser_manager = BrowserManager()
     await app.state.browser_manager.start()

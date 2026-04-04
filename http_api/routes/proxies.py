@@ -14,13 +14,13 @@ def _get_proxy_manager(request: Request):
 @router.get("/proxies")
 async def list_proxies(request: Request):
     pm = _get_proxy_manager(request)
-    return {"proxies": pm.list_all()}
+    return {"proxies": await pm.list_all()}
 
 
 @router.post("/proxies/add")
 async def add_proxy(body: ProxyAddRequest, request: Request):
     pm = _get_proxy_manager(request)
-    ok = pm.add(body.proxy_url)
+    ok = await pm.add(body.proxy_url)
     if not ok:
         raise HTTPException(status_code=409, detail="proxy_already_exists")
     return {"status": "added", "proxy_url": body.proxy_url}
@@ -29,7 +29,7 @@ async def add_proxy(body: ProxyAddRequest, request: Request):
 @router.delete("/proxies/{proxy_url:path}")
 async def delete_proxy(proxy_url: str, request: Request):
     pm = _get_proxy_manager(request)
-    ok = pm.remove(proxy_url)
+    ok = await pm.remove(proxy_url)
     if not ok:
         raise HTTPException(status_code=404, detail="proxy_not_found")
     return {"status": "deleted", "proxy_url": proxy_url}
